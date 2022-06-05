@@ -61,16 +61,27 @@ Using the chmod command, it can set custom permissions to files and directories.
 $ chmod <permission> -R <file_or_directory>
 ```
 
-Run the `ls -al` command, it’ll print information about the files and directories under current directory. Left column show the encoded file permissions, `drwxr-xr-x` for example. The third column indicates the "user owner" of the file/directory. It’s the user who created this specific file/directory. The fourth column indicates the "group owner". It indicates the user group that has access to the file/directory, any user from the group can access the file/directory.
+Run the `ls -ali` command, it’ll print information about the files and directories under current directory:
 
-For a directory, the fisrt character of file permissions will be "d", for a single file, the value will be "-". Total vision:
+```bash
+524459 drwx-----x  4 root root  4096 Jun  5 09:22 .
+524441 drwx--x--- 13 root root  4096 Jun  5 09:22 ..
+524442 brw-------  1 root root  8, 2 Jun  5 09:22 backingFsBlockDev
+524461 -rw-------  1 root root 32768 Jun  5 09:22 metadata.db
+524497 drwxrwxr-x  3 root root  4096 Jun  4 16:14 phabricator_mariadb_data
+524508 drwxrwxr-x  3 root root  4096 Jun  4 16:14 phabricator_phabricator_data
+```
+
+The 2nd column shows the encoded file permissions. The 4th column indicates the "user owner" of the file/directory. It’s the user who created this specific file/directory. The 5th column indicates the "group owner". It indicates the user group that has access to the file/directory, any user from the group can access the file/directory.
+
+For a directory permission pattern, `drwxr-xr-x` for example, the fisrt character of file permission will be "d", for a single file, the value will be "-". Give a conclusion:
 
 - Character 1: File (-) or directory (d).
 - Character 2-4: Permission for the user owner.
 - Character 5-7: Permission for the group owner.
 - Character 8-10: Permission for others, for example, users that aren’t the owner and not part of the user group.
 
-In characters 2-10, `r` for read, `w` `for` write, `x` for execute, so the values will come in the form of `rwx`, if a certain value is `-`, then the permission isn’t set. Instead of using characters, it’s also possible to use octal values to signify the permissions, the value ranges from 0 to 7 in octal, 4 for read, 2 for write, 1 for execute, 755 is an octal expression of the permission `rwxr-xr-x`:
+In characters 2-10, `r` for read, `w` for write, `x` for execute, so the values will come in the form of `rwx`, if a certain value is `-`, then the permission isn’t set. Instead of using characters, it’s also possible to use octal values to signify the permissions, the value ranges from 0 to 7 in octal, 4 for read, 2 for write, 1 for execute, 755 is an octal expression of the permission `rwxr-xr-x`:
 
 - 7 = 4 + 2 + 1: Read, write, and execute (user owner).
 - 5 = 4 + 0 + 1: Read and execute permissions (group owner).
