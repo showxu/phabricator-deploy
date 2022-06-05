@@ -16,7 +16,6 @@
 
 This [CVE scan report](https://quay.io/repository/bitnami/phabricator?tab=tags) contains a security report with all open CVEs. To get the list of actionable security issues, find the "latest" tag, click the vulnerability report link under the corresponding "Security scan" field and then select the "Only show fixable" filter on the next page.
 
-
 ### Usage
 
 1. Clone this docker compse project.
@@ -34,17 +33,16 @@ set the config parameter `phabricator.base-uri`:
 ./bin/config set phabricator.base-uri 'http://example.com/'
 ```
 
-**reference**
+> **Reference**
 
 - [⚓ T8717 Bad error when first installing phabricator](https://secure.phabricator.com/T8717)
 - [apache - This request asked for "/" on host "example.com", but no site is configured which can serve this request - Stack Overflow](https://stackoverflow.com/questions/35628144/this-request-asked-for-on-host-example-com-but-no-site-is-configured-whic)
 
-
 #### mkdir: cannot create directory '/bitnami/mariadb/data': Permission denied
 
-There are 2 options to solve the issue:
+There are 2 methods to solve the issue:
 
-1. Option 1 change mod, group, owner:
+1. change files(directory) mod, group, owner
 
 ```bash
 mkdir mariadb-data && sudo chown -R 1001:1001 mariadb-data && sudo chmod -R 775 mariadb-data
@@ -78,8 +76,7 @@ In characters 2-10, `r` for read, `w` `for` write, `x` for execute, so the value
 - 5 = 4 + 0 + 1: Read and execute permissions (group owner).
 - 5 = 4 + 0 + 1: Read and execute permissions (others).
 
-
-2. Option 2 use volumes:
+2. use volumes instead of bind mounts
 
 Non-root containers and mounting local folders is problematic, as the permissions are different. Normally, what most users do in this case is to put very open permissions in that mounted folder. Replace ./mariadb-data:/bitnami by mariadb-data:/bitnami (removing ./) in the docker-compose.yml and add the following lines at the end of the file:
 
@@ -89,23 +86,27 @@ volumes:
     driver: local
 ```
 
-**Reference**
+> **Reference**
 
 - [mkdir: cannot create directory '/bitnami/mariadb/data': Permission denied · Issue #186 · bitnami/bitnami-docker-mariadb](https://github.com/bitnami/bitnami-docker-mariadb/issues/186)
 - [getting "mkdir: cannot create directory '/bitnami/mariadb': Permission denied" · Issue #193 · bitnami/bitnami-docker-mariadb](https://github.com/bitnami/bitnami-docker-mariadb/issues/193)
 
 
-#### HTTPS setup
+#### HTTPS setup issue 
+
+- not rendering the UI
 
 The problem was that `security.require-https` set to true but phabricator hadn't yet setup HTTPS so it was only using plain old HTTP. In particular, when connect over HTTP to a security.require-https install, phab normally just immediately redirect user to `https://....`
 
-**Reference**
+> **Reference**
 
 - [⚓ T12547 Confusing error message when trying to register an account over HTTP with `security.require-https`](https://secure.phabricator.com/T12547)
 - [⚙ D17676 Tailor the CSRF check message for HTTP requests with "security.require-https"](https://secure.phabricator.com/D17676)
 - [Phabricator installed but not rendering the UI, only bare text/links - ricator - Bitnami Community](https://community.bitnami.com/t/phabricator-installed-but-not-rendering-the-ui-only-bare-text-links/38827/3)
 
-#### ssh: Connection closed by #{host}, after SSH2_MSG_KEXINIT sent 
+#### ssh issues 
+
+- Connection closed by #{host}, after SSH2_MSG_KEXINIT sent 
 
 First use `ssh -v -T ssh://git@host:2222` to test ssh connection:
 
@@ -124,13 +125,12 @@ Error loading host key "/etc/ssh/ssh_host_rsa_key": bad permissions
 Could not load host key: /etc/ssh/ssh_host_rsa_key
 ```
 
-It seems the ssh private key has the excessive file permissions, change mod 644 to public keys and 600 to private keys:
+It turns out that the ssh private key has the excessive file permissions, so change mod 644 to public keys and 600 to private keys:
 
 ```bash
 chmod 644 #{key.pub}
 chmod 600 #{key.private}
 ```
-
 
 ## Deploy Phabricator on Kubernetes
 
