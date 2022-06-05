@@ -1,0 +1,20 @@
+services: 
+  mariadb:  
+    environment: 
+      - MARIADB_ROOT_PASSWORD=${PHABRICATOR_PROD_DBA_PASSWD}
+      - MARIADB_SKIP_TEST_DB=yes 
+    volumes: 
+      # /var/lib/docker/volumes/phabricator_mariadb_data/_data
+      - mariadb_data:/bitnami/mariadb
+  phabricator:
+    environment:
+      - PHABRICATOR_HOST=${PHABRICATOR_PROD_HOST}
+      - PHABRICATOR_USERNAME=admin
+      - PHABRICATOR_PASSWORD=${PHABRICATOR_PROD_PASSWD}
+      - PHABRICATOR_DATABASE_ADMIN_PASSWORD=${PHABRICATOR_PROD_DBA_PASSWD}
+    volumes: 
+      # chmod -R 775
+      # Phabricator Extensions
+      - /opt/bitnami/phabricator/src/extensions:/opt/bitnami/phabricator/src/extensions
+      # /var/lib/docker/volumes/phabricator_phabricator_data/_data
+      - phabricator_data:/bitnami/phabricator

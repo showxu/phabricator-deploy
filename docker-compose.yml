@@ -1,0 +1,143 @@
+version: '3'
+services: 
+  mariadb:  
+    container_name: 'phabricator-mariadb' 
+    hostname: 'phabricator-mariadb'
+    networks: 
+      - phabricator
+    image: 'bitnami/mariadb:10.7.3' 
+    # [bitnami/mariadb - Docker Image | Docker Hub](https://hub.docker.com/r/bitnami/mariadb)
+    environment: 
+      # ------ Passing extra command-line flags to mysqld startup ------
+      # Passing extra command-line flags to the mysqld service command is possible through the following env var:
+      - MARIADB_EXTRA_FLAGS=--max-connect-errors=1000 --max_connections=155 --local-infile=0 --max-allowed-packet=32M --innodb-buffer-pool-size=256MB # Flags to be appended to the startup command. No defaults
+      - MARIADB_SQL_MODE=STRICT_ALL_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+      # ------ Setting character set and collation ------
+      # It is possible to configure the character set and collation used by default by the database with the following environment variables:
+      # - MARIADB_CHARACTER_SET: The default character set to use. Default: utf8
+      # - MARIADB_COLLATE: The default collation to use. Default: utf8_general_ci
+
+      # ------ Setting the root password on first run ------
+      # The root user and password can easily be setup with the Bitnami MariaDB Docker image using the following environment variables:
+      # - MARIADB_ROOT_USER: The database admin user. Defaults to root.
+      # - MARIADB_ROOT_PASSWORD: The database admin user password. No defaults.
+      # - MARIADB_ROOT_PASSWORD_FILE: Path to a file that contains the admin user password. This will override the value specified in MARIADB_ROOT_PASSWORD. No defaults.
+
+      # ------ Allowing empty passwords ------
+      # By default the MariaDB image expects all the available passwords to be set. In order to allow empty passwords, it is necessary to set the ALLOW_EMPTY_PASSWORD=yes env variable. This env variable is only recommended for testing or development purposes. We strongly recommend specifying the MARIADB_ROOT_PASSWORD for any other scenario.
+      # - ALLOW_EMPTY_PASSWORD=no # This is recommended only for development.
+
+      # ------ Creating a database on first run ------
+      # By passing the MARIADB_DATABASE environment variable when running the image for the first time, a database will be created. This is useful if your application requires that a database already exists, saving you from having to manually create the database using the MySQL client.
+      - MARIADB_DATABASE=phabricator 
+
+      # ------ Creating a database user on first run ------
+      # You can create a restricted database user that only has permissions for the database created with the MARIADB_DATABASE environment variable. To do this, provide the MARIADB_USER environment variable and to set a password for the database user provide the MARIADB_PASSWORD variable (alternatively, you can set the MARIADB_PASSWORD_FILE with the path to a file that contains the user password). MariaDB supports different authentication mechanisms, such as pam or mysql_native_password. To set it, use the MARIADB_AUTHENTICATION_PLUGIN variable.
+      # - MARIADB_USER=my_user
+      # - MARIADB_PASSWORD=my_password
+      # - MARIADB_PASSWORD_FILE=
+      # - MARIADB_AUTHENTICATION_PLUGIN=pam
+      
+      # --- Disable creation of test database ---
+      # By default MariaDB creates a test database. In order to disable the creation of this test database, the flag --skip-test-db can be passed to mysql_install_db. This function is only on MariaDB >= 10.5. To disable the test database in the Bitnami MariaDB container, set the MARIADB_SKIP_TEST_DB environment variable to yes during the first boot of the container.
+      # - MARIADB_SKIP_TEST_DB=yes 
+
+      # ------ Slow query logs ------
+      # By default MariaDB doesn't enable slow query log to record the SQL queries that take a long time to perform. You can modify these settings using the following environment variables:
+      # - MARIADB_ENABLE_SLOW_QUERY: Whether to enable slow query logs. Default: 0
+      # - MARIADB_LONG_QUERY_TIME: How much time, in seconds, defines a slow query. Default: 10.0
+
+      # ------ Slow filesystems ------
+      # In some platforms, the filesystem used for persistence could be slow. That could cause the database to take extra time to be ready. If that's the case, you can configure the MARIADB_INIT_SLEEP_TIME environment variable to make the initialization script to wait extra time (in seconds) before proceeding with the configuration operations.
+      # - MARIADB_INIT_SLEEP_TIME
+
+      # ------ Setting up a replication cluster ------
+      # A zero downtime MariaDB master-slave replication cluster can easily be setup with the Bitnami MariaDB Docker image using the following environment variables:
+      # - MARIADB_REPLICATION_MODE: The replication mode. Possible values master/slave. No defaults.
+      # - MARIADB_REPLICATION_USER: The replication user created on the master on first run. No defaults.
+      # - MARIADB_REPLICATION_PASSWORD: The replication users password. No defaults.
+      # - MARIADB_REPLICATION_PASSWORD_FILE: Path to a file that contains the replication user password. This will override the value specified in MARIADB_REPLICATION_PASSWORD. No defaults.
+      # - MARIADB_MASTER_HOST: Hostname/IP of replication master (slave parameter). No defaults.
+      # - MARIADB_MASTER_PORT_NUMBER: Server port of the replication master (slave parameter). Defaults to 3306.
+      # - MARIADB_MASTER_ROOT_USER: User on replication master with access to MARIADB_DATABASE (slave parameter). Defaults to root
+      # - MARIADB_MASTER_ROOT_PASSWORD: Password of user on replication master with access to MARIADB_DATABASE (slave parameter). No defaults.
+      # - MARIADB_MASTER_ROOT_PASSWORD_FILE: Path to a file that contains the password of user on replication master with access to MARIADB_DATABASE. This will override the value specified in MARIADB_MASTER_ROOT_PASSWORD. No defaults.
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    ports: 
+      - '3306:3306'
+    volumes: []
+    restart: on-failure 
+  phabricator: 
+    container_name: 'phabricator' 
+    hostname: 'phabricator' 
+    networks: 
+      - phabricator
+    image: 'bitnami/phabricator:2021.26.0' 
+    # [bitnami/phabricator - Docker Image | Docker Hub](https://hub.docker.com/r/bitnami/phabricator)
+    user: root
+    depends_on: 
+      - mariadb 
+    ports:
+      - '80:8080'
+      - '443:8443'
+      - '2222:2222'
+    environment: 
+      # ------ User and Site configuration ------ 
+      # When you start the Phabricator image, you can adjust the configuration of the instance by passing one or more environment variables either on the docker-compose file or on the docker run command line. If you want to add a new environment variable:
+      # - APACHE_HTTP_PORT_NUMBER: Port used by Apache for HTTP. Default: 8080
+      # - APACHE_HTTPS_PORT_NUMBER: Port used by Apache for HTTPS. Default: 8443
+      # - PHABRICATOR_USERNAME: Phabricator application username. Default: user
+      # - PHABRICATOR_PASSWORD: Phabricator application password. Default: bitnami1
+      # - PHABRICATOR_EMAIL: Phabricator application email. Default: user@example.com
+      # - PHABRICATOR_FIRSTNAME: Phabricator user first name. Default: FirstName
+      # - PHABRICATOR_LASTNAME: Phabricator user last name. Default: LastName
+      # - PHABRICATOR_HOST: Hostname used by Phabricator to form URLs. Default: 127.0.0.1 
+      # - PHABRICATOR_ALTERNATE_FILE_DOMAIN: Alternate domain to use to upload files. No defaults.
+      - PHABRICATOR_USE_LFS=yes # Whether to configure Phabricator to use GIT Large File Storage (LFS). Default: no
+      - PHABRICATOR_ENABLE_GIT_SSH_REPOSITORY=yes # Whether to configure a self-hosted GIT repository with SSH authentication. Default: no
+      # - PHABRICATOR_SSH_PORT_NUMBER: Port for SSH daemon. Default: 22
+      # - PHABRICATOR_ENABLE_PYGMENTS: Whether to enable syntax highlighting using Pygments. Default: yes
+      # - PHABRICATOR_SKIP_BOOTSTRAP: Whether to skip the initial bootstrapping for the application (useful to reuse already populated databases). Default: no
+
+      # ------ Use an existing database ------
+      - PHABRICATOR_DATABASE_HOST=phabricator-mariadb # Hostname for MariaDB server. Default: mariadb
+      # - PHABRICATOR_DATABASE_PORT_NUMBER: Port used by MariaDB server. Default: 3306
+      # - PHABRICATOR_DATABASE_ADMIN_USER: Database admin user that Phabricator will use to connect with the database server and create its required databases. Default: root
+      # - PHABRICATOR_DATABASE_ADMIN_PASSWORD: Database admin password that Phabricator will use to connect with the database server and create its required databases. No defaults.
+      # - PHABRICATOR_EXISTING_DATABASE_USER: Existing user with privileges to modify Phabricator databases when using an already populated database server (ignored unless PHABRICATOR_SKIP_BOOTSTRAP=yes). No defaults.
+      # - PHABRICATOR_DATABASE_ADMIN_PASSWORD: Password for the existing user mentioned above (ignored unless PHABRICATOR_SKIP_BOOTSTRAP=yes). No defaults.
+      # - ALLOW_EMPTY_PASSWORD: It can be used to allow blank passwords. Default: no
+
+      # ------ SMTP Configuration ------
+      # To configure Phabricator to send email using SMTP you can set the following environment variables:
+      # PHABRICATOR_SMTP_HOST: SMTP host.
+      # PHABRICATOR_SMTP_PORT: SMTP port.
+      # PHABRICATOR_SMTP_USER: SMTP account user.
+      # PHABRICATOR_SMTP_PASSWORD: SMTP account password.
+      # PHABRICATOR_SMTP_PROTOCOL: SMTP protocol. No defaults. (e.g. tls)
+
+      # ------ PHP configuration ------
+      # PHP_MAX_EXECUTION_TIME: Maximum execution time for PHP scripts. No default.
+      # PHP_MAX_INPUT_TIME: Maximum input time for PHP scripts. No default.
+      # PHP_MAX_INPUT_VARS: Maximum amount of input variables for PHP scripts. No default.
+      # PHP_MEMORY_LIMIT: Memory limit for PHP scripts. Default: 256M
+      # PHP_POST_MAX_SIZE: Maximum size for PHP POST requests. No default.
+      # PHP_UPLOAD_MAX_FILESIZE: Maximum file size for PHP uploads. No default.
+      # PHP_ENABLE_OPCACHE: Enable OPcache for PHP scripts. No default.
+      # PHP_EXPOSE_PHP: Enables HTTP header with PHP version. No default.
+    volumes: []
+    restart: on-failure
+networks: 
+  phabricator:
+    driver: bridge
+    external: false
+volumes:
+  mariadb_data:
+    driver: local
+  phabricator_data:
+    driver: local

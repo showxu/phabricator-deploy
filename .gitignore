@@ -1,0 +1,4 @@
+.DS_Store
+phabricator_data/
+mariadb_data/
+phabricator_ext/

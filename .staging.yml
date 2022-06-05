@@ -1,0 +1,18 @@
+services: 
+  mariadb:  
+    environment:
+      - MARIADB_ROOT_PASSWORD=${PHABRICATOR_DEV_DBA_PASSWD}
+    volumes:
+      # - mariadb_data:/bitnami/mariadb
+      - ./mariadb_data:/bitnami/mariadb
+  phabricator: 
+    environment: 
+      - PHABRICATOR_HOST=${PHABRICATOR_DEV_HOST}
+      - PHABRICATOR_USERNAME=admin
+      - PHABRICATOR_PASSWORD=${PHABRICATOR_DEV_PASSWD}
+      - PHABRICATOR_DATABASE_ADMIN_PASSWORD=${PHABRICATOR_DEV_DBA_PASSWD}
+    volumes: 
+      # Phabricator Extensions
+      - ./phabricator_ext:/opt/bitnami/phabricator/src/extensions
+      # - phabricator_data:/bitnami/phabricator
+      - ./phabricator_data:/bitnami/phabricator
