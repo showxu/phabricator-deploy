@@ -5,7 +5,7 @@
 - bitnami/phabricator - Docker Image
 - bitnami/mariadb - Docker Image
 
-### use Bitnami Images
+### Use Bitnami Images
 
 - Bitnami closely tracks upstream source changes and promptly publishes new versions of this image using our automated systems.
 - With Bitnami images the latest bug fixes and features are available as soon as possible.
@@ -92,7 +92,7 @@ volumes:
 - [getting "mkdir: cannot create directory '/bitnami/mariadb': Permission denied" · Issue #193 · bitnami/bitnami-docker-mariadb](https://github.com/bitnami/bitnami-docker-mariadb/issues/193)
 
 
-#### HTTPS setup issue 
+#### HTTPS setup issues
 
 - not rendering the UI
 
@@ -104,7 +104,7 @@ The problem was that `security.require-https` set to true but phabricator hadn't
 - [⚙ D17676 Tailor the CSRF check message for HTTP requests with "security.require-https"](https://secure.phabricator.com/D17676)
 - [Phabricator installed but not rendering the UI, only bare text/links - ricator - Bitnami Community](https://community.bitnami.com/t/phabricator-installed-but-not-rendering-the-ui-only-bare-text-links/38827/3)
 
-#### ssh issues 
+#### SSH issues 
 
 - Connection closed by #{host}, after SSH2_MSG_KEXINIT sent 
 
